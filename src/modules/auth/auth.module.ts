@@ -48,6 +48,6 @@ import { envs } from 'src/config/envs';
       }),
     }),
   ],
-  exports: [JwtStrategy, PassportModule, JwtModule],
+  exports: [JwtStrategy, PassportModule, JwtModule, AUTH_REPOSITORY],
 })
 export class AuthModule {}

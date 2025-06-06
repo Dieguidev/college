@@ -152,6 +152,8 @@ export class AuthRepository implements IAuthRepository {
     // Realizar transacción para crear personal y usuario
     const result = await this.prisma.$transaction(async (prisma) => {
       // Crear registro de personal
+      console.log('Datos del personal:', staffData);
+
       const personal = await prisma.personal.create({
         data: {
           dni: staffData.dni,
@@ -164,7 +166,7 @@ export class AuthRepository implements IAuthRepository {
           email: staffData.email,
           profesion: staffData.profesion,
           fechaContratacion: staffData.fechaContratacion || new Date(),
-          institucionId,
+          institucionId: staffData.institucionId,
         },
       });
 
