@@ -1,5 +1,5 @@
 import {
-  IsEmail,
+  IsNumber,
   IsString,
   Matches,
   MaxLength,
@@ -8,8 +8,7 @@ import {
 
 export class LoginUserDto {
   @IsString()
-  @IsEmail()
-  email: string;
+  username: string;
 
   @IsString()
   @MinLength(6)
@@ -19,4 +18,7 @@ export class LoginUserDto {
       'The password must have a Uppercase, lowercase letter and a number',
   })
   password: string;
+
+  @IsNumber()
+  institucionId: number;
 }

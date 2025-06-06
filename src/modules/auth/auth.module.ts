@@ -3,14 +3,24 @@ import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-
-import { JwtStrategy } from './strategies/jwt.strategy';
+import { AuthController } from './interfaces/controllers/auth.controller';
+import { JwtStrategy } from './interfaces/strategies/jwt.strategy';
+import { LoginUseCase, RegisterStudentUseCase } from './application/use-cases';
+import { AuthRepository } from './infrastructure/repositories/auth.repository';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [
+    // Casos de uso
+    LoginUseCase,
+    RegisterStudentUseCase,
+
+    // Repositorios
+    AuthRepository,
+
+    // Estrategias
+    JwtStrategy,
+  ],
   imports: [
     ConfigModule,
 

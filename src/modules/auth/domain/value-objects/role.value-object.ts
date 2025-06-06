@@ -1,0 +1,13 @@
+export enum Role {
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  ADMIN = 'ADMIN',
+  DIRECTOR = 'DIRECTOR',
+  SUBDIRECTOR = 'SUBDIRECTOR',
+  PROFESOR = 'PROFESOR',
+  TUTOR = 'TUTOR',
+  SECRETARIA = 'SECRETARIA',
+  ESTUDIANTE = 'ESTUDIANTE',
+  OTRO = 'OTRO',
+}
+
+export type ValidRole = keyof typeof Role;
