@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../database/prisma/prisma.service';
 import { User } from '../../domain/entities/user.entity';
 import { Role } from '../../domain/value-objects/role.value-object';
+import { IAuthRepository } from '../../domain/repositories/auth.repository.interface';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
-export class AuthRepository {
+export class AuthRepository implements IAuthRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findUserByUsername(

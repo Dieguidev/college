@@ -1,14 +1,19 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { CreateStudentDto } from '../dto';
-import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
+import { IAuthRepository } from '../../domain/repositories/auth.repository.interface';
+import { AUTH_REPOSITORY } from '../../domain/repositories/auth-repository.token';
 
 @Injectable()
 export class RegisterStudentUseCase {
-  constructor(private readonly authRepository: AuthRepository) {}
+  constructor(
+    @Inject(AUTH_REPOSITORY)
+    private readonly authRepository: IAuthRepository,
+  ) {}
 
   async execute(createStudentDto: CreateStudentDto, institucionId: number) {
     try {

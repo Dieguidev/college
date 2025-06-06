@@ -1,4 +1,5 @@
 import { User } from '../entities/user.entity';
+import { CreateStudentDto } from '../../application/dto/create-student.dto';
 
 export interface IAuthRepository {
   findUserByUsername(
@@ -10,5 +11,8 @@ export interface IAuthRepository {
     password: string,
     institucionId: number,
   ): Promise<User | null>;
-  registerStudent(studentData: any, institucionId: number): Promise<User>;
+  registerStudent(
+    studentData: CreateStudentDto,
+    institucionId: number,
+  ): Promise<User>;
 }

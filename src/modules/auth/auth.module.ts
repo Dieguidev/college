@@ -7,6 +7,7 @@ import { AuthController } from './interfaces/controllers/auth.controller';
 import { JwtStrategy } from './interfaces/strategies/jwt.strategy';
 import { LoginUseCase, RegisterStudentUseCase } from './application/use-cases';
 import { AuthRepository } from './infrastructure/repositories/auth.repository';
+import { AUTH_REPOSITORY } from './domain/repositories/auth-repository.token';
 
 @Module({
   controllers: [AuthController],
@@ -16,6 +17,10 @@ import { AuthRepository } from './infrastructure/repositories/auth.repository';
     RegisterStudentUseCase,
 
     // Repositorios
+    {
+      provide: AUTH_REPOSITORY,
+      useClass: AuthRepository,
+    },
     AuthRepository,
 
     // Estrategias
