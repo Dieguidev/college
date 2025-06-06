@@ -1,0 +1,675 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelos del sistema de colegio
+
+model Estudiante {
+  id              Int              @id @default(autoincrement())
+  dni             String           @unique
+  nombres         String
+  apellidos       String
+  fechaNacimiento DateTime
+  genero          Genero
+  direccion       String?
+  telefono        String?
+  email           String?
+  fechaIngreso    DateTime         @default(now())
+  estado          EstadoEstudiante @default(ACTIVO)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relaciones
+  usuario       Usuario?
+  apoderados    ApoderadoEstudiante[]
+  matriculas    Matricula[]
+  asistencias   Asistencia[]
+  notas         Nota[]
+  observaciones Observacion[]
+  valoresCampo  ValorCampoNota[]
+  Boleta        Boleta[]
+  Pension       Pension[]
+
+  @@map("estudiantes")
+}
+
+model Apoderado {
+  id        Int      @id @default(autoincrement())
+  dni       String   @unique
+  nombres   String
+  apellidos String
+  telefono  String
+  email     String?
+  ocupacion String?
+  direccion String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  estudiantes ApoderadoEstudiante[]
+
+  @@map("apoderados")
+}
+
+model ApoderadoEstudiante {
+  id           Int            @id @default(autoincrement())
+  apoderadoId  Int
+  estudianteId Int
+  parentesco   TipoParentesco
+  esPrincipal  Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  // Relaciones
+  apoderado  Apoderado  @relation(fields: [apoderadoId], references: [id], onDelete: Cascade)
+  estudiante Estudiante @relation(fields: [estudianteId], references: [id], onDelete: Cascade)
+
+  @@unique([apoderadoId, estudianteId])
+  @@map("apoderados_estudiantes")
+}
+
+model Personal {
+  id                Int            @id @default(autoincrement())
+  dni               String         @unique
+  nombres           String
+  apellidos         String
+  fechaNacimiento   DateTime
+  genero            Genero
+  direccion         String?
+  telefono          String
+  email             String
+  profesion         String?
+  fechaContratacion DateTime
+  estado            EstadoPersonal @default(ACTIVO)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  // Relaciones
+  usuario        Usuario?
+  profesorCursos ProfesorCurso[]
+  tutorClases    Clase[]
+
+  @@map("personal")
+}
+
+model Usuario {
+  id           Int       @id @default(autoincrement())
+  username     String    @unique
+  password     String
+  personalId   Int?      @unique
+  estudianteId Int?      @unique
+  rol          Rol
+  estado       Boolean   @default(true)
+  ultimoAcceso DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relaciones
+  personal   Personal?   @relation(fields: [personalId], references: [id], onDelete: Cascade)
+  estudiante Estudiante? @relation(fields: [estudianteId], references: [id], onDelete: Cascade)
+
+  @@map("usuarios")
+}
+
+model AñoAcademico {
+  id          Int                 @id @default(autoincrement())
+  nombre      String
+  fechaInicio DateTime
+  fechaFin    DateTime
+  estado      EstadoAñoAcademico @default(PLANIFICACION)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  // Relaciones
+  niveles  Nivel[]
+  periodos Periodo[]
+  Pension  Pension[]
+
+  @@map("años_academicos")
+}
+
+model Nivel {
+  id              Int      @id @default(autoincrement())
+  nombre          String // Primaria, Secundaria
+  añoAcademicoId Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relaciones
+  añoAcademico    AñoAcademico     @relation(fields: [añoAcademicoId], references: [id], onDelete: Cascade)
+  grados           Grado[]
+  plantillasBoleta PlantillaBoleta[]
+
+  @@map("niveles")
+}
+
+model Grado {
+  id        Int      @id @default(autoincrement())
+  nombre    String // 1ro, 2do, 3ro, etc.
+  nivelId   Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  nivel  Nivel   @relation(fields: [nivelId], references: [id], onDelete: Cascade)
+  clases Clase[]
+
+  @@map("grados")
+}
+
+model Clase {
+  id        Int      @id @default(autoincrement())
+  nombre    String // A, B, C, etc.
+  capacidad Int
+  tutorId   Int?
+  gradoId   Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  grado       Grado        @relation(fields: [gradoId], references: [id], onDelete: Cascade)
+  tutor       Personal?    @relation(fields: [tutorId], references: [id])
+  matriculas  Matricula[]
+  cursoClases CursoClase[]
+
+  @@map("clases")
+}
+
+model Matricula {
+  id             Int             @id @default(autoincrement())
+  estudianteId   Int
+  claseId        Int
+  fechaMatricula DateTime        @default(now())
+  estado         EstadoMatricula @default(ACTIVO)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  // Relaciones
+  estudiante Estudiante @relation(fields: [estudianteId], references: [id], onDelete: Cascade)
+  clase      Clase      @relation(fields: [claseId], references: [id], onDelete: Cascade)
+
+  @@unique([estudianteId, claseId])
+  @@map("matriculas")
+}
+
+model Curso {
+  id          Int      @id @default(autoincrement())
+  nombre      String
+  descripcion String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  cursoClases CursoClase[]
+
+  @@map("cursos")
+}
+
+model CursoClase {
+  id         Int      @id @default(autoincrement())
+  cursoId    Int
+  claseId    Int
+  profesorId Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relaciones
+  curso                  Curso              @relation(fields: [cursoId], references: [id], onDelete: Cascade)
+  clase                  Clase              @relation(fields: [claseId], references: [id], onDelete: Cascade)
+  profesor               ProfesorCurso?     @relation(fields: [profesorId], references: [id])
+  horarios               Horario[]
+  asistencias            Asistencia[]
+  notas                  Nota[]
+  gruposNotas            GrupoNota[]
+  comentariosBoletaCurso ComentarioBoleta[]
+
+  @@unique([cursoId, claseId])
+  @@map("cursos_clases")
+}
+
+model ProfesorCurso {
+  id         Int      @id @default(autoincrement())
+  profesorId Int
+  cursoId    Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relaciones
+  profesor    Personal     @relation(fields: [profesorId], references: [id], onDelete: Cascade)
+  cursoClases CursoClase[]
+
+  @@unique([profesorId, cursoId])
+  @@map("profesores_cursos")
+}
+
+model Periodo {
+  id              Int      @id @default(autoincrement())
+  nombre          String // Primer bimestre, Segundo bimestre, etc.
+  fechaInicio     DateTime
+  fechaFin        DateTime
+  añoAcademicoId Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relaciones
+  añoAcademico AñoAcademico @relation(fields: [añoAcademicoId], references: [id], onDelete: Cascade)
+  notas         Nota[]
+  gruposNotas   GrupoNota[]
+  Boleta        Boleta[]
+
+  @@map("periodos")
+}
+
+model Horario {
+  id           Int       @id @default(autoincrement())
+  cursoClaseId Int
+  diaSemana    DiaSemana
+  horaInicio   DateTime // Solo se usa la parte de hora
+  horaFin      DateTime // Solo se usa la parte de hora
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relaciones
+  cursoClase CursoClase @relation(fields: [cursoClaseId], references: [id], onDelete: Cascade)
+
+  @@map("horarios")
+}
+
+model Asistencia {
+  id            Int              @id @default(autoincrement())
+  estudianteId  Int
+  cursoClaseId  Int
+  fecha         DateTime
+  estado        EstadoAsistencia
+  justificacion String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  // Relaciones
+  estudiante Estudiante @relation(fields: [estudianteId], references: [id], onDelete: Cascade)
+  cursoClase CursoClase @relation(fields: [cursoClaseId], references: [id], onDelete: Cascade)
+
+  @@unique([estudianteId, cursoClaseId, fecha])
+  @@map("asistencias")
+}
+
+model PlantillaNota {
+  id          Int      @id @default(autoincrement())
+  nombre      String // Nombre de la plantilla (por ejemplo "Evaluación Bimestral 2025")
+  descripcion String?
+  cursoId     Int // Relacionado con el curso al que aplica esta plantilla
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  campos CampoPlantillaNota[]
+  grupos GrupoNota[]
+
+  @@map("plantillas_notas")
+}
+
+model CampoPlantillaNota {
+  id           Int           @id @default(autoincrement())
+  plantillaId  Int
+  nombre       String // Nombre del campo (por ejemplo "Examen Parcial", "Participación", etc.)
+  descripcion  String?
+  tipoDato     TipoDatoCampo // Tipo de dato del campo (numérico, texto, etc.)
+  requerido    Boolean       @default(false)
+  orden        Int // Orden de visualización
+  pesoPromedio Float? // Peso porcentual para el cálculo de promedios
+  valorMinimo  Float? // Para validación (mínimo permitido)
+  valorMaximo  Float? // Para validación (máximo permitido)
+  valorDefecto String? // Valor por defecto (se convierte según tipoDato)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Relaciones
+  plantilla    PlantillaNota    @relation(fields: [plantillaId], references: [id], onDelete: Cascade)
+  valoresCampo ValorCampoNota[]
+
+  @@unique([plantillaId, nombre])
+  @@map("campos_plantilla_nota")
+}
+
+model GrupoNota {
+  id              Int      @id @default(autoincrement())
+  plantillaId     Int
+  cursoClaseId    Int
+  periodoId       Int
+  fechaCreacion   DateTime @default(now())
+  fechaEvaluacion DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relaciones
+  plantilla    PlantillaNota    @relation(fields: [plantillaId], references: [id], onDelete: Restrict)
+  cursoClase   CursoClase       @relation(fields: [cursoClaseId], references: [id], onDelete: Cascade)
+  periodo      Periodo          @relation(fields: [periodoId], references: [id], onDelete: Cascade)
+  valoresCampo ValorCampoNota[]
+
+  @@unique([cursoClaseId, periodoId, plantillaId])
+  @@map("grupos_notas")
+}
+
+model ValorCampoNota {
+  id           Int      @id @default(autoincrement())
+  grupoNotaId  Int
+  campoId      Int
+  estudianteId Int
+  valor        String // Almacenamos como string para cualquier tipo de dato
+  comentario   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relaciones
+  grupoNota  GrupoNota          @relation(fields: [grupoNotaId], references: [id], onDelete: Cascade)
+  campo      CampoPlantillaNota @relation(fields: [campoId], references: [id], onDelete: Restrict)
+  estudiante Estudiante         @relation(fields: [estudianteId], references: [id], onDelete: Cascade)
+
+  @@unique([grupoNotaId, campoId, estudianteId])
+  @@map("valores_campo_nota")
+}
+
+enum TipoDatoCampo {
+  NUMERICO // Para calificaciones numéricas
+  ENTERO // Para valores enteros (asistencias, participaciones, etc.)
+  TEXTO // Para comentarios o evaluaciones textuales
+  BOOLEANO // Para aprobado/reprobado, cumplido/incumplido, etc.
+  FECHA // Para fechas
+  SELECCION // Para valores de selección múltiple
+}
+
+// Mantenemos el modelo TipoNota para compatibilidad con sistemas existentes
+// pero marcamos como obsoleto
+model TipoNota {
+  id          Int      @id @default(autoincrement())
+  nombre      String // Examen, Tarea, Proyecto, etc.
+  descripcion String?
+  peso        Float // Peso porcentual de la nota
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  obsoleto    Boolean  @default(false) // Para marcar como obsoleto
+
+  // Relaciones
+  notas Nota[]
+
+  @@map("tipos_notas")
+}
+
+// Mantenemos el modelo Nota para compatibilidad con datos históricos
+// pero marcamos como obsoleto para nuevos registros
+model Nota {
+  id              Int      @id @default(autoincrement())
+  estudianteId    Int
+  cursoClaseId    Int
+  tipoNotaId      Int
+  periodoId       Int
+  valor           Float
+  comentario      String?
+  fechaEvaluacion DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  obsoleto        Boolean  @default(false) // Para marcar como obsoleto
+
+  // Relaciones
+  estudiante Estudiante @relation(fields: [estudianteId], references: [id], onDelete: Cascade)
+  cursoClase CursoClase @relation(fields: [cursoClaseId], references: [id], onDelete: Cascade)
+  tipoNota   TipoNota   @relation(fields: [tipoNotaId], references: [id], onDelete: Cascade)
+  periodo    Periodo    @relation(fields: [periodoId], references: [id], onDelete: Cascade)
+
+  @@unique([estudianteId, cursoClaseId, tipoNotaId, periodoId])
+  @@map("notas")
+}
+
+model Observacion {
+  id           Int             @id @default(autoincrement())
+  estudianteId Int
+  titulo       String
+  descripcion  String
+  fecha        DateTime        @default(now())
+  tipo         TipoObservacion
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  // Relaciones
+  estudiante Estudiante @relation(fields: [estudianteId], references: [id], onDelete: Cascade)
+
+  @@map("observaciones")
+}
+
+// Modelos para boletas y pensiones
+
+model PlantillaBoleta {
+  id                Int      @id @default(autoincrement())
+  nombre            String
+  descripcion       String?
+  nivelId           Int // Para diferentes formatos según el nivel (primaria/secundaria)
+  fechaCreacion     DateTime @default(now())
+  activo            Boolean  @default(true)
+  mostrarAsistencia Boolean  @default(true)
+  mostrarPromedio   Boolean  @default(true)
+  mostrarRanking    Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relaciones
+  nivel            Nivel                   @relation(fields: [nivelId], references: [id], onDelete: Restrict)
+  boletas          Boleta[]
+  seccionesBoleta  SeccionBoleta[]
+  bancoComentarios ComentarioPredefinido[]
+
+  @@map("plantillas_boletas")
+}
+
+model SeccionBoleta {
+  id                Int      @id @default(autoincrement())
+  plantillaBoletaId Int
+  nombre            String
+  descripcion       String?
+  orden             Int
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relaciones
+  plantillaBoleta PlantillaBoleta @relation(fields: [plantillaBoletaId], references: [id], onDelete: Cascade)
+
+  @@map("secciones_boleta")
+}
+
+model Boleta {
+  id                Int          @id @default(autoincrement())
+  estudianteId      Int
+  periodoId         Int
+  plantillaBoletaId Int
+  fechaGeneracion   DateTime     @default(now())
+  estado            EstadoBoleta @default(PENDIENTE)
+  comentarioGeneral String?
+  promedioGeneral   Float?
+  ranking           Int? // Posición del estudiante en su clase
+  publicada         Boolean      @default(false)
+  firmadaDirector   Boolean      @default(false)
+  firmadaTutor      Boolean      @default(false)
+  firmadaApoderado  Boolean      @default(false)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  // Relaciones
+  estudiante        Estudiante         @relation(fields: [estudianteId], references: [id], onDelete: Cascade)
+  periodo           Periodo            @relation(fields: [periodoId], references: [id], onDelete: Cascade)
+  plantillaBoleta   PlantillaBoleta    @relation(fields: [plantillaBoletaId], references: [id], onDelete: Restrict)
+  comentariosBoleta ComentarioBoleta[]
+
+  @@unique([estudianteId, periodoId])
+  @@map("boletas")
+}
+
+model ComentarioBoleta {
+  id           Int      @id @default(autoincrement())
+  boletaId     Int
+  cursoClaseId Int? // Puede ser null para comentarios generales
+  titulo       String?
+  comentario   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relaciones
+  boleta     Boleta      @relation(fields: [boletaId], references: [id], onDelete: Cascade)
+  cursoClase CursoClase? @relation(fields: [cursoClaseId], references: [id], onDelete: SetNull)
+
+  @@map("comentarios_boleta")
+}
+
+model ComentarioPredefinido {
+  id                Int      @id @default(autoincrement())
+  plantillaBoletaId Int
+  categoria         String // Excelente, Bueno, Regular, Necesita mejorar, etc.
+  texto             String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relaciones
+  plantillaBoleta PlantillaBoleta @relation(fields: [plantillaBoletaId], references: [id], onDelete: Cascade)
+
+  @@map("comentarios_predefinidos")
+}
+
+model Pension {
+  id               Int           @id @default(autoincrement())
+  estudianteId     Int
+  añoAcademicoId  Int
+  mes              Int // 1-12 para enero-diciembre
+  monto            Float
+  fechaEmision     DateTime
+  fechaVencimiento DateTime
+  fechaPago        DateTime?
+  estado           EstadoPension @default(PENDIENTE)
+  metodoPago       MetodoPago?
+  comprobante      String? // URL o referencia al comprobante
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  // Relaciones
+  estudiante    Estudiante    @relation(fields: [estudianteId], references: [id], onDelete: Cascade)
+  añoAcademico AñoAcademico @relation(fields: [añoAcademicoId], references: [id], onDelete: Cascade)
+
+  @@unique([estudianteId, añoAcademicoId, mes])
+  @@map("pensiones")
+}
+
+// Enumeraciones
+
+enum Genero {
+  MASCULINO
+  FEMENINO
+  OTRO
+}
+
+enum EstadoEstudiante {
+  ACTIVO
+  INACTIVO
+  EGRESADO
+  TRASLADADO
+  SUSPENDIDO
+}
+
+enum EstadoPersonal {
+  ACTIVO
+  INACTIVO
+  LICENCIA
+  VACACIONES
+}
+
+enum Rol {
+  ADMIN
+  DIRECTOR
+  SUBDIRECTOR
+  PROFESOR
+  TUTOR
+  SECRETARIA
+  ESTUDIANTE
+  OTRO
+}
+
+enum EstadoAñoAcademico {
+  PLANIFICACION
+  ACTIVO
+  FINALIZADO
+}
+
+enum EstadoMatricula {
+  ACTIVO
+  RETIRADO
+  SUSPENDIDO
+}
+
+enum DiaSemana {
+  LUNES
+  MARTES
+  MIERCOLES
+  JUEVES
+  VIERNES
+  SABADO
+  DOMINGO
+}
+
+enum EstadoAsistencia {
+  PRESENTE
+  AUSENTE
+  TARDANZA
+  JUSTIFICADO
+}
+
+enum TipoObservacion {
+  CONDUCTUAL
+  ACADEMICA
+  LOGRO
+  OTRO
+}
+
+enum TipoParentesco {
+  PADRE
+  MADRE
+  ABUELO
+  ABUELA
+  TIO
+  TIA
+  HERMANO
+  HERMANA
+  TUTOR_LEGAL
+  OTRO
+}
+
+enum EstadoBoleta {
+  PENDIENTE
+  GENERADA
+  PUBLICADA
+  ARCHIVADA
+}
+
+enum EstadoPension {
+  PENDIENTE
+  PAGADA
+  VENCIDA
+  ANULADA
+}
+
+enum MetodoPago {
+  EFECTIVO
+  TRANSFERENCIA
+  TARJETA
+  DEPOSITO
+  OTRO
+}

@@ -1,0 +1,17 @@
+services:
+  db:
+    image: mysql:8.0.28
+    container_name: colegio_mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: colegio
+      MYSQL_USER: usuario
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
