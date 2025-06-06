@@ -29,7 +29,6 @@ export class AuthService {
   async registerStudent(createStudentDto: CreateStudentDto) {
     const {
       password,
-      username,
       rol = Rol.ESTUDIANTE,
       dni,
       nombres,
@@ -42,13 +41,29 @@ export class AuthService {
     } = createStudentDto;
 
     try {
-      // Verificar si ya existe un usuario con ese username
-      const existingUser = await this.prisma.usuario.findUnique({
-        where: { username },
-      });
+      // Generamos un nombre de usuario basado en el nombre y apellido
+      // Tomamos la primera letra del nombre + el primer apellido
+      const nombreBase =
+        nombres.charAt(0).toLowerCase() + apellidos.split(' ')[0].toLowerCase();
 
-      if (existingUser) {
-        throw new BadRequestException('El nombre de usuario ya existe');
+      // Verificamos si ese nombre de usuario ya existe
+      let username = nombreBase;
+      let counter = 1;
+      let usernameExists = true;
+
+      // Buscar un nombre de usuario disponible
+      while (usernameExists) {
+        const existingUser = await this.prisma.usuario.findUnique({
+          where: { username },
+        });
+
+        if (!existingUser) {
+          usernameExists = false;
+        } else {
+          // Si ya existe, añadimos un contador al final
+          username = `${nombreBase}${counter}`;
+          counter++;
+        }
       }
 
       // Verificar si ya existe un estudiante con ese DNI

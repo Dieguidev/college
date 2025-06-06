@@ -61,15 +61,7 @@ export class CreateStudentDto {
   email?: string;
 
   // Campos para la creación del usuario asociado
-  @IsString()
-  @IsNotEmpty({ message: 'El nombre de usuario es obligatorio' })
-  @MinLength(4, {
-    message: 'El nombre de usuario debe tener al menos 4 caracteres',
-  })
-  @MaxLength(50, {
-    message: 'El nombre de usuario no debe exceder los 50 caracteres',
-  })
-  username: string;
+  // El username se generará automáticamente en el servicio
 
   @IsString()
   @IsNotEmpty({ message: 'La contraseña es obligatoria' })
