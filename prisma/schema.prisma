@@ -16,9 +16,44 @@ datasource db {
 
 // Modelos del sistema de colegio
 
+// Modelo base para multi-tenant
+model Institucion {
+  id              Int      @id @default(autoincrement())
+  nombre          String
+  ruc             String   @unique
+  direccion       String
+  telefono        String?
+  email           String?
+  sitioWeb        String?
+  logo            String?
+  colorPrimario   String?
+  colorSecundario String?
+  estado          Boolean  @default(true)
+  fechaCreacion   DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  adminId         Int?     @unique // ID del administrador principal
+
+  // Relaciones con otros modelos
+  admin            Personal?         @relation("AdminInstitucion", fields: [adminId], references: [id])
+  estudiantes      Estudiante[]
+  apoderados       Apoderado[]
+  personal         Personal[]
+  añosAcademicos  AñoAcademico[]
+  niveles          Nivel[]
+  cursos           Curso[]
+  periodos         Periodo[]
+  plantillasNotas  PlantillaNota[]
+  plantillasBoleta PlantillaBoleta[]
+  usuarios         Usuario[] // Relación con todos los usuarios de esta institución
+  Observacion      Observacion[]
+
+  @@map("instituciones")
+}
+
 model Estudiante {
   id              Int              @id @default(autoincrement())
-  dni             String           @unique
+  dni             String
   nombres         String
   apellidos       String
   fechaNacimiento DateTime
@@ -28,10 +63,12 @@ model Estudiante {
   email           String?
   fechaIngreso    DateTime         @default(now())
   estado          EstadoEstudiante @default(ACTIVO)
+  institucionId   Int // Clave foránea para la institución
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
   // Relaciones
+  institucion   Institucion           @relation(fields: [institucionId], references: [id])
   usuario       Usuario?
   apoderados    ApoderadoEstudiante[]
   matriculas    Matricula[]
@@ -42,24 +79,28 @@ model Estudiante {
   Boleta        Boleta[]
   Pension       Pension[]
 
+  @@unique([dni, institucionId]) // DNI único por institución
   @@map("estudiantes")
 }
 
 model Apoderado {
-  id        Int      @id @default(autoincrement())
-  dni       String   @unique
-  nombres   String
-  apellidos String
-  telefono  String
-  email     String?
-  ocupacion String?
-  direccion String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  dni           String
+  nombres       String
+  apellidos     String
+  telefono      String
+  email         String?
+  ocupacion     String?
+  direccion     String?
+  institucionId Int // Clave foránea para la institución
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Relaciones
+  institucion Institucion           @relation(fields: [institucionId], references: [id])
   estudiantes ApoderadoEstudiante[]
 
+  @@unique([dni, institucionId]) // DNI único por institución
   @@map("apoderados")
 }
 
@@ -82,7 +123,7 @@ model ApoderadoEstudiante {
 
 model Personal {
   id                Int            @id @default(autoincrement())
-  dni               String         @unique
+  dni               String
   nombres           String
   apellidos         String
   fechaNacimiento   DateTime
@@ -93,50 +134,60 @@ model Personal {
   profesion         String?
   fechaContratacion DateTime
   estado            EstadoPersonal @default(ACTIVO)
+  institucionId     Int // Clave foránea para la institución
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
 
   // Relaciones
+  institucion    Institucion     @relation(fields: [institucionId], references: [id])
+  adminDe        Institucion?    @relation("AdminInstitucion")
   usuario        Usuario?
   profesorCursos ProfesorCurso[]
   tutorClases    Clase[]
 
+  @@unique([dni, institucionId]) // DNI único por institución
   @@map("personal")
 }
 
 model Usuario {
-  id           Int       @id @default(autoincrement())
-  username     String    @unique
-  password     String
-  personalId   Int?      @unique
-  estudianteId Int?      @unique
-  rol          Rol
-  estado       Boolean   @default(true)
-  ultimoAcceso DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id            Int       @id @default(autoincrement())
+  username      String
+  password      String
+  personalId    Int?      @unique // Debe ser único para la relación uno-a-uno
+  estudianteId  Int?      @unique // Debe ser único para la relación uno-a-uno
+  rol           Rol
+  estado        Boolean   @default(true)
+  ultimoAcceso  DateTime?
+  institucionId Int // Clave foránea para la institución
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   // Relaciones
-  personal   Personal?   @relation(fields: [personalId], references: [id], onDelete: Cascade)
-  estudiante Estudiante? @relation(fields: [estudianteId], references: [id], onDelete: Cascade)
+  institucion Institucion @relation(fields: [institucionId], references: [id])
+  personal    Personal?   @relation(fields: [personalId], references: [id], onDelete: Cascade)
+  estudiante  Estudiante? @relation(fields: [estudianteId], references: [id], onDelete: Cascade)
 
+  @@unique([username, institucionId]) // Username único por institución
   @@map("usuarios")
 }
 
 model AñoAcademico {
-  id          Int                 @id @default(autoincrement())
-  nombre      String
-  fechaInicio DateTime
-  fechaFin    DateTime
-  estado      EstadoAñoAcademico @default(PLANIFICACION)
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  id            Int                 @id @default(autoincrement())
+  nombre        String
+  fechaInicio   DateTime
+  fechaFin      DateTime
+  estado        EstadoAñoAcademico @default(PLANIFICACION)
+  institucionId Int // Clave foránea para la institución
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 
   // Relaciones
-  niveles  Nivel[]
-  periodos Periodo[]
-  Pension  Pension[]
+  institucion Institucion @relation(fields: [institucionId], references: [id])
+  niveles     Nivel[]
+  periodos    Periodo[]
+  Pension     Pension[]
 
+  @@unique([nombre, institucionId]) // Nombre único por institución
   @@map("años_academicos")
 }
 
@@ -144,14 +195,17 @@ model Nivel {
   id              Int      @id @default(autoincrement())
   nombre          String // Primaria, Secundaria
   añoAcademicoId Int
+  institucionId   Int // Clave foránea para la institución
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   // Relaciones
+  institucion      Institucion       @relation(fields: [institucionId], references: [id])
   añoAcademico    AñoAcademico     @relation(fields: [añoAcademicoId], references: [id], onDelete: Cascade)
   grados           Grado[]
   plantillasBoleta PlantillaBoleta[]
 
+  @@unique([nombre, añoAcademicoId, institucionId]) // Nombre único por año académico e institución
   @@map("niveles")
 }
 
@@ -205,15 +259,18 @@ model Matricula {
 }
 
 model Curso {
-  id          Int      @id @default(autoincrement())
-  nombre      String
-  descripcion String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  nombre        String
+  descripcion   String?
+  institucionId Int // Clave foránea para la institución
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Relaciones
+  institucion Institucion  @relation(fields: [institucionId], references: [id])
   cursoClases CursoClase[]
 
+  @@unique([nombre, institucionId]) // Nombre único por institución
   @@map("cursos")
 }
 
@@ -260,15 +317,18 @@ model Periodo {
   fechaInicio     DateTime
   fechaFin        DateTime
   añoAcademicoId Int
+  institucionId   Int // Clave foránea para la institución
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   // Relaciones
+  institucion   Institucion   @relation(fields: [institucionId], references: [id])
   añoAcademico AñoAcademico @relation(fields: [añoAcademicoId], references: [id], onDelete: Cascade)
   notas         Nota[]
   gruposNotas   GrupoNota[]
   Boleta        Boleta[]
 
+  @@unique([nombre, añoAcademicoId, institucionId]) // Nombre único por año académico e institución
   @@map("periodos")
 }
 
@@ -306,18 +366,21 @@ model Asistencia {
 }
 
 model PlantillaNota {
-  id          Int      @id @default(autoincrement())
-  nombre      String // Nombre de la plantilla (por ejemplo "Evaluación Bimestral 2025")
-  descripcion String?
-  cursoId     Int // Relacionado con el curso al que aplica esta plantilla
-  activo      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  nombre        String // Nombre de la plantilla (por ejemplo "Evaluación Bimestral 2025")
+  descripcion   String?
+  cursoId       Int // Relacionado con el curso al que aplica esta plantilla
+  activo        Boolean  @default(true)
+  institucionId Int // Clave foránea para la institución
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Relaciones
-  campos CampoPlantillaNota[]
-  grupos GrupoNota[]
+  institucion Institucion          @relation(fields: [institucionId], references: [id])
+  campos      CampoPlantillaNota[]
+  grupos      GrupoNota[]
 
+  @@unique([nombre, institucionId, cursoId]) // Nombre único por institución y curso
   @@map("plantillas_notas")
 }
 
@@ -435,17 +498,19 @@ model Nota {
 }
 
 model Observacion {
-  id           Int             @id @default(autoincrement())
-  estudianteId Int
-  titulo       String
-  descripcion  String
-  fecha        DateTime        @default(now())
-  tipo         TipoObservacion
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  id            Int             @id @default(autoincrement())
+  estudianteId  Int
+  titulo        String
+  descripcion   String
+  fecha         DateTime        @default(now())
+  tipo          TipoObservacion
+  institucionId Int // Clave foránea para la institución
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 
   // Relaciones
-  estudiante Estudiante @relation(fields: [estudianteId], references: [id], onDelete: Cascade)
+  estudiante  Estudiante  @relation(fields: [estudianteId], references: [id], onDelete: Cascade)
+  institucion Institucion @relation(fields: [institucionId], references: [id])
 
   @@map("observaciones")
 }
@@ -462,15 +527,18 @@ model PlantillaBoleta {
   mostrarAsistencia Boolean  @default(true)
   mostrarPromedio   Boolean  @default(true)
   mostrarRanking    Boolean  @default(true)
+  institucionId     Int // Clave foránea para la institución
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
   // Relaciones
+  institucion      Institucion             @relation(fields: [institucionId], references: [id])
   nivel            Nivel                   @relation(fields: [nivelId], references: [id], onDelete: Restrict)
   boletas          Boleta[]
   seccionesBoleta  SeccionBoleta[]
   bancoComentarios ComentarioPredefinido[]
 
+  @@unique([nombre, nivelId, institucionId]) // Nombre único por nivel e institución
   @@map("plantillas_boletas")
 }
 
@@ -593,7 +661,8 @@ enum EstadoPersonal {
 }
 
 enum Rol {
-  ADMIN
+  SUPER_ADMIN // Administrador de todas las instituciones
+  ADMIN // Administrador de una institución específica
   DIRECTOR
   SUBDIRECTOR
   PROFESOR
