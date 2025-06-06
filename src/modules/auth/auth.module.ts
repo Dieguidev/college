@@ -5,9 +5,14 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './interfaces/controllers/auth.controller';
 import { JwtStrategy } from './interfaces/strategies/jwt.strategy';
-import { LoginUseCase, RegisterStudentUseCase } from './application/use-cases';
+import {
+  LoginUseCase,
+  RegisterStudentUseCase,
+  CreateStaffUserUseCase,
+} from './application/use-cases';
 import { AuthRepository } from './infrastructure/repositories/auth.repository';
 import { AUTH_REPOSITORY } from './domain/repositories/auth-repository.token';
+import { envs } from 'src/config/envs';
 
 @Module({
   controllers: [AuthController],
@@ -15,6 +20,7 @@ import { AUTH_REPOSITORY } from './domain/repositories/auth-repository.token';
     // Casos de uso
     LoginUseCase,
     RegisterStudentUseCase,
+    CreateStaffUserUseCase,
 
     // Repositorios
     {
@@ -35,7 +41,7 @@ import { AUTH_REPOSITORY } from './domain/repositories/auth-repository.token';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'),
+        secret: envs.jwtSecret,
         signOptions: {
           expiresIn: '2h',
         },
