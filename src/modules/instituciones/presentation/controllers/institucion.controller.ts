@@ -19,8 +19,9 @@ import {
   GetInstitucionByIdUseCase,
   DeleteInstitucionUseCase,
 } from '../../application/use-cases';
-import { Auth } from '../../../auth/interfaces/decorators/auth.decorator';
+
 import { Role } from '../../../auth/domain/value-objects';
+import { Auth } from 'src/modules/auth/presentation';
 
 @Controller('instituciones')
 export class InstitucionController {

@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { LoginUserDto } from '../dto';
 import { IAuthRepository } from '../../domain/repositories/auth.repository.interface';
 import { AUTH_REPOSITORY } from '../../domain/repositories/auth-repository.token';
-import { JwtPayload } from '../../interfaces/controllers/interfaces/jwt-payload.interface';
+import { JwtPayload } from '../../presentation';
 
 @Injectable()
 export class LoginUseCase {

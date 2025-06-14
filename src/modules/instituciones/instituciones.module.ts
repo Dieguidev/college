@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 
-import { InstitucionController } from './interfaces/controllers/institucion.controller';
 import { INSTITUCION_REPOSITORY } from './domain/repositories/institucion-repository.token';
 import { InstitucionRepository } from './infrastructure/repositories/institucion.repository';
 import {
@@ -11,6 +10,7 @@ import {
   GetInstitucionesUseCase,
   UpdateInstitucionUseCase,
 } from './application/use-cases';
+import { InstitucionController } from './presentation/controllers';
 
 @Module({
   imports: [AuthModule],

@@ -3,8 +3,7 @@ import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthController } from './interfaces/controllers/auth.controller';
-import { JwtStrategy } from './interfaces/strategies/jwt.strategy';
+
 import {
   LoginUseCase,
   RegisterStudentUseCase,
@@ -13,6 +12,7 @@ import {
 import { AuthRepository } from './infrastructure/repositories/auth.repository';
 import { AUTH_REPOSITORY } from './domain/repositories/auth-repository.token';
 import { envs } from 'src/config/envs';
+import { AuthController, JwtStrategy } from './presentation';
 
 @Module({
   controllers: [AuthController],
