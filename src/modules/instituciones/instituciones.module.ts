@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AuthModule } from '../auth/auth.module';
 
 import { InstitucionController } from './interfaces/controllers/institucion.controller';
 import { INSTITUCION_REPOSITORY } from './domain/repositories/institucion-repository.token';
@@ -12,6 +13,7 @@ import {
 } from './application/use-cases';
 
 @Module({
+  imports: [AuthModule],
   controllers: [InstitucionController],
   providers: [
     // Casos de uso
