@@ -1,0 +1,7 @@
+// filepath: g:\PROYECTOS\COLLEGE\BACK\src\modules\academico\domain\repositories\academico-repository.token.ts
+export const ANIO_ACADEMICO_REPOSITORY = 'ANIO_ACADEMICO_REPOSITORY';
+export const NIVEL_REPOSITORY = 'NIVEL_REPOSITORY';
+export const GRADO_REPOSITORY = 'GRADO_REPOSITORY';
+export const CURSO_REPOSITORY = 'CURSO_REPOSITORY';
+export const CLASE_REPOSITORY = 'CLASE_REPOSITORY';
+export const ESTUDIANTE_GRADO_REPOSITORY = 'ESTUDIANTE_GRADO_REPOSITORY';

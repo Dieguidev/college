@@ -68,16 +68,17 @@ model Estudiante {
   updatedAt       DateTime         @updatedAt
 
   // Relaciones
-  institucion   Institucion           @relation(fields: [institucionId], references: [id])
-  usuario       Usuario?
-  apoderados    ApoderadoEstudiante[]
-  matriculas    Matricula[]
-  asistencias   Asistencia[]
-  notas         Nota[]
-  observaciones Observacion[]
-  valoresCampo  ValorCampoNota[]
-  Boleta        Boleta[]
-  Pension       Pension[]
+  institucion       Institucion           @relation(fields: [institucionId], references: [id])
+  usuario           Usuario?
+  apoderados        ApoderadoEstudiante[]
+  matriculas        Matricula[]
+  estudiantesGrados EstudianteGrado[]
+  asistencias       Asistencia[]
+  notas             Nota[]
+  observaciones     Observacion[]
+  valoresCampo      ValorCampoNota[]
+  Boleta            Boleta[]
+  Pension           Pension[]
 
   @@unique([dni, institucionId]) // DNI único por institución
   @@map("estudiantes")

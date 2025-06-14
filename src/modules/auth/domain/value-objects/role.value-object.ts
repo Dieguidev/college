@@ -7,6 +7,7 @@ export enum Role {
   TUTOR = 'TUTOR',
   SECRETARIA = 'SECRETARIA',
   ESTUDIANTE = 'ESTUDIANTE',
+  ASISTENTE = 'ASISTENTE',
   OTRO = 'OTRO',
 }
 

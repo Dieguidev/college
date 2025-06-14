@@ -1,6 +1,13 @@
 import { Module } from '@nestjs/common';
 import { InstitucionesController } from './interfaces/controllers';
-import { CreateInstitucionUseCase } from './application/use-cases';
+import {
+  CreateInstitucionUseCase,
+  GetAllInstitucionesUseCase,
+  GetInstitucionByIdUseCase,
+  GetInstitucionByRucUseCase,
+  UpdateInstitucionUseCase,
+  DeleteInstitucionUseCase,
+} from './application/use-cases';
 import { InstitucionesRepository } from './infrastructure/repositories/instituciones.repository';
 import { INSTITUCIONES_REPOSITORY } from './domain/repositories/instituciones-repository.token';
 import { AuthModule } from '../auth/auth.module';
@@ -13,6 +20,11 @@ import { AuthModule } from '../auth/auth.module';
   providers: [
     // Casos de uso
     CreateInstitucionUseCase,
+    GetAllInstitucionesUseCase,
+    GetInstitucionByIdUseCase,
+    GetInstitucionByRucUseCase,
+    UpdateInstitucionUseCase,
+    DeleteInstitucionUseCase,
 
     // Repositorios
     {
