@@ -8,19 +8,17 @@ import { Role } from '../../../auth/domain/value-objects';
 import { JwtPayload } from '../../../auth/presentation/controllers/interfaces/jwt-payload.interface';
 
 /**
- * @deprecated Este decorador será eliminado en futuras versiones.
- * Use InstitucionAuth en su lugar, que tiene la misma funcionalidad
- * pero con un nombre más descriptivo de su propósito.
+ * Decorador para extraer el ID de la institución de los parámetros de la ruta,
+ * y autorizar el acceso basado en la pertenencia del usuario a dicha institución.
  *
- * Decorador para extraer el ID de la institución de los parámetros de la ruta
- * y verificar que el usuario logueado pertenezca a esta institución.
+ * Funciones:
+ * 1. Extrae y valida el ID de institución de los parámetros de la ruta
+ * 2. Verifica que el usuario actual tenga permiso para acceder a esta institución
+ * 3. Permite acceso al SUPER_ADMIN independientemente de la institución
+ * 4. Lanza ForbiddenException si el usuario intenta acceder a una institución diferente a la suya
  */
-export const InstitucionIdParam = createParamDecorator(
+export const InstitucionAuth = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext): number => {
-    console.warn(
-      'DEPRECATED: InstitucionIdParam está obsoleto. Use InstitucionAuth en su lugar.',
-    );
-
     const request: Request = ctx.switchToHttp().getRequest();
 
     // Extraer el ID de la institución del parámetro de ruta
